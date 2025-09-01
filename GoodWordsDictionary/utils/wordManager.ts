@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 interface WordData {
   word: string;
   definition: string;
@@ -9,8 +11,7 @@ interface WordHistory {
   currentWordIndex?: number;
 }
 
-// Global storage for word history (in a real app, you'd use AsyncStorage)
-let wordHistory: WordHistory[] = [];
+const WORD_HISTORY_KEY = 'wordHistory';
 
 // Get today's date as a string (YYYY-MM-DD)
 const getTodayString = (): string => {
@@ -30,10 +31,31 @@ const getAllWords = (): WordData[] => {
   }
 };
 
+// Load word history from AsyncStorage
+const loadWordHistory = async (): Promise<WordHistory[]> => {
+  try {
+    const historyJson = await AsyncStorage.getItem(WORD_HISTORY_KEY);
+    return historyJson ? JSON.parse(historyJson) : [];
+  } catch (error) {
+    console.error('Error loading word history:', error);
+    return [];
+  }
+};
+
+// Save word history to AsyncStorage
+const saveWordHistory = async (history: WordHistory[]): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(WORD_HISTORY_KEY, JSON.stringify(history));
+  } catch (error) {
+    console.error('Error saving word history:', error);
+  }
+};
+
 // Get today's word history or create new one
-const getTodayHistory = (): WordHistory => {
+const getTodayHistory = async (): Promise<WordHistory> => {
   const today = getTodayString();
-  let todayHistory = wordHistory.find(h => h.date === today);
+  const wordHistory = await loadWordHistory();
+  let todayHistory = wordHistory.find((h: WordHistory) => h.date === today);
   
   if (!todayHistory) {
     todayHistory = {
@@ -42,15 +64,16 @@ const getTodayHistory = (): WordHistory => {
       currentWordIndex: undefined
     };
     wordHistory.push(todayHistory);
+    await saveWordHistory(wordHistory);
   }
   
   return todayHistory;
 };
 
 // Get word of the day
-export const getWordOfTheDay = (): WordData => {
+export const getWordOfTheDay = async (): Promise<WordData> => {
   const allWords = getAllWords();
-  const todayHistory = getTodayHistory();
+  const todayHistory = await getTodayHistory();
   
   // If we already have a word for today, return it
   if (todayHistory.currentWordIndex !== undefined) {
@@ -72,6 +95,14 @@ export const getWordOfTheDay = (): WordData => {
     todayHistory.currentWordIndex = randomIndex;
     todayHistory.shownWords.push(selectedWord.word);
     
+    // Save updated history
+    const wordHistory = await loadWordHistory();
+    const historyIndex = wordHistory.findIndex((h: WordHistory) => h.date === todayHistory.date);
+    if (historyIndex >= 0) {
+      wordHistory[historyIndex] = todayHistory;
+    }
+    await saveWordHistory(wordHistory);
+    
     return selectedWord;
   }
   
@@ -85,13 +116,22 @@ export const getWordOfTheDay = (): WordData => {
   todayHistory.currentWordIndex = actualIndex;
   todayHistory.shownWords.push(selectedWord.word);
   
+  // Save updated history
+  const wordHistory = await loadWordHistory();
+  const historyIndex = wordHistory.findIndex((h: WordHistory) => h.date === todayHistory.date);
+  if (historyIndex >= 0) {
+    wordHistory[historyIndex] = todayHistory;
+  }
+  await saveWordHistory(wordHistory);
+  
   return selectedWord;
 };
 
 // Check if it's a new day and reset current word
-export const checkAndResetForNewDay = (): void => {
+export const checkAndResetForNewDay = async (): Promise<void> => {
   const today = getTodayString();
-  const todayHistory = wordHistory.find(h => h.date === today);
+  const wordHistory = await loadWordHistory();
+  const todayHistory = wordHistory.find((h: WordHistory) => h.date === today);
   
   if (!todayHistory) {
     // It's a new day, the next call to getWordOfTheDay will create new history
@@ -100,9 +140,9 @@ export const checkAndResetForNewDay = (): void => {
 };
 
 // Get statistics for debugging
-export const getWordStats = () => {
+export const getWordStats = async () => {
   const allWords = getAllWords();
-  const todayHistory = getTodayHistory();
+  const todayHistory = await getTodayHistory();
   
   return {
     totalWords: allWords.length,
@@ -110,4 +150,13 @@ export const getWordStats = () => {
     remainingWords: allWords.length - todayHistory.shownWords.length,
     currentDate: getTodayString()
   };
+};
+
+// Clear all word history (useful for testing)
+export const clearWordHistory = async (): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(WORD_HISTORY_KEY);
+  } catch (error) {
+    console.error('Error clearing word history:', error);
+  }
 };

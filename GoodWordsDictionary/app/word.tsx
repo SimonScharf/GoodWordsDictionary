@@ -14,13 +14,24 @@ export default function Word() {
   const [wordStats, setWordStats] = useState<any>(null);
 
   useEffect(() => {
-    // Get today's word of the day
-    const { getWordOfTheDay, checkAndResetForNewDay, getWordStats } = require("../utils/wordManager");
-    checkAndResetForNewDay();
-    const todaysWord = getWordOfTheDay();
-    const stats = getWordStats();
-    setCurrentWord(todaysWord);
-    setWordStats(stats);
+    const loadTodaysWord = async () => {
+      try {
+        const { getWordOfTheDay, checkAndResetForNewDay, getWordStats } = require("../utils/wordManager");
+        await checkAndResetForNewDay();
+        const todaysWord = await getWordOfTheDay();
+        const stats = await getWordStats();
+        setCurrentWord(todaysWord);
+        setWordStats(stats);
+      } catch (error) {
+        console.error("Error loading word of the day:", error);
+        // Fallback to original dictionary
+        const dictionaryData = require("../assets/dictionary.json");
+        const randomIndex = Math.floor(Math.random() * dictionaryData.words.length);
+        setCurrentWord(dictionaryData.words[randomIndex]);
+      }
+    };
+
+    loadTodaysWord();
   }, []);
 
   const handleSeeDefinition = () => {

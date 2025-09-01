@@ -1,5 +1,5 @@
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function Index() {
     <View style={styles.container}>
       <Text style={styles.title}>Good Words Dictionary</Text>
       <TouchableOpacity style={styles.button} onPress={handleWordOfTheDay}>
-        <Text style={styles.buttonText}>Click here for your word of the day</Text>
+        <Text style={styles.buttonText}>See the word of the day!</Text>
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.secondaryButton} onPress={handleAddWord}>
