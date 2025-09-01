@@ -2,9 +2,9 @@ import { Text, View, TouchableOpacity, StyleSheet, TextInput, Alert } from "reac
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Global storage for custom words (in a real app, you'd use AsyncStorage or a database)
-let customWords: Array<{word: string, definition: string}> = [];
+const CUSTOM_WORDS_KEY = 'customWords';
 
 export default function AddWord() {
   const router = useRouter();
@@ -15,23 +15,35 @@ export default function AddWord() {
     router.push("/");
   };
 
-  const handleSaveWord = () => {
+  const handleSaveWord = async () => {
     if (!word.trim() || !definition.trim()) {
       Alert.alert("Error", "Please enter both a word and definition");
       return;
     }
 
-    // Add new word to global storage
-    const newWord = {
-      word: word.trim().toLowerCase(),
-      definition: definition.trim()
-    };
-    
-    customWords.push(newWord);
-    
-    Alert.alert("Success", "Word added successfully!", [
-      { text: "OK", onPress: () => router.push("/") }
-    ]);
+    try {
+      // Get existing custom words from AsyncStorage
+      const existingCustomWords = await AsyncStorage.getItem(CUSTOM_WORDS_KEY);
+      const customWords = existingCustomWords ? JSON.parse(existingCustomWords) : [];
+      
+      // Add new word
+      const newWord = {
+        word: word.trim().toLowerCase(),
+        definition: definition.trim()
+      };
+      
+      customWords.push(newWord);
+      
+      // Save back to AsyncStorage
+      await AsyncStorage.setItem(CUSTOM_WORDS_KEY, JSON.stringify(customWords));
+      
+      Alert.alert("Success", "Word added successfully!", [
+        { text: "OK", onPress: () => router.push("/") }
+      ]);
+      
+    } catch (error) {
+      Alert.alert("Error", "Failed to save word. Please try again.");
+    }
   };
 
   return (
@@ -143,7 +155,15 @@ const styles = StyleSheet.create({
 });
 
 // Export function to get all words (original + custom)
-export const getAllWords = () => {
+export const getAllWords = async () => {
   const originalWords = require("../assets/dictionary.json").words;
-  return [...originalWords, ...customWords];
+  
+  try {
+    const existingCustomWords = await AsyncStorage.getItem(CUSTOM_WORDS_KEY);
+    const customWords = existingCustomWords ? JSON.parse(existingCustomWords) : [];
+    return [...originalWords, ...customWords];
+  } catch (error) {
+    console.error("Error loading custom words:", error);
+    return originalWords;
+  }
 };

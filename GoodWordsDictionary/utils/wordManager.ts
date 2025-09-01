@@ -20,13 +20,14 @@ const getTodayString = (): string => {
 };
 
 // Get all available words (original + custom)
-const getAllWords = (): WordData[] => {
-  const originalWords = require("../assets/dictionary.json").words;
-  // Import custom words from add-word module
+const getAllWords = async (): Promise<WordData[]> => {
   try {
     const { getAllWords } = require("../app/add-word");
-    return getAllWords();
-  } catch {
+    return await getAllWords();
+  } catch (error) {
+    console.error("Error loading words:", error);
+    // Fallback to original dictionary
+    const originalWords = require("../assets/dictionary.json").words;
     return originalWords;
   }
 };
@@ -72,7 +73,7 @@ const getTodayHistory = async (): Promise<WordHistory> => {
 
 // Get word of the day
 export const getWordOfTheDay = async (): Promise<WordData> => {
-  const allWords = getAllWords();
+  const allWords = await getAllWords();
   const todayHistory = await getTodayHistory();
   
   // If we already have a word for today, return it
@@ -141,7 +142,7 @@ export const checkAndResetForNewDay = async (): Promise<void> => {
 
 // Get statistics for debugging
 export const getWordStats = async () => {
-  const allWords = getAllWords();
+  const allWords = await getAllWords();
   const todayHistory = await getTodayHistory();
   
   return {
