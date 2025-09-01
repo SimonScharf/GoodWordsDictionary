@@ -1,26 +1,72 @@
-import { Text, View, TouchableOpacity, StyleSheet, TextInput, Alert } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, TextInput, Alert, Switch } from "react-native";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 
 const API_BASE_URL = 'http://localhost:3001/api';
+const DICTIONARY_API_KEY = 'fe32eda5-af52-4576-94a4-f24ea5e76075';
 
 export default function AddWord() {
   const router = useRouter();
   const [word, setWord] = useState("");
   const [definition, setDefinition] = useState("");
+  const [autoFetchDefinition, setAutoFetchDefinition] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleGoHome = () => {
     router.push("/");
   };
 
+  const fetchDefinitionFromAPI = async (wordToLookup: string) => {
+    try {
+      const response = await fetch(
+        `https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${encodeURIComponent(wordToLookup)}?key=${DICTIONARY_API_KEY}`
+      );
+      const data = await response.json();
+      
+      if (data && data.length > 0 && data[0].shortdef && data[0].shortdef.length > 0) {
+        return data[0].shortdef[0]; // Return first definition
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching definition:", error);
+      return null;
+    }
+  };
+
   const handleSaveWord = async () => {
-    if (!word.trim() || !definition.trim()) {
-      Alert.alert("Error", "Please enter both a word and definition");
+    if (!word.trim()) {
+      Alert.alert("Error", "Please enter a word");
       return;
     }
 
+    setIsLoading(true);
+    let finalDefinition = definition.trim();
+
     try {
+      // If auto-fetch is enabled and no definition provided, try to fetch from API
+      if (autoFetchDefinition && !finalDefinition) {
+        const apiDefinition = await fetchDefinitionFromAPI(word.trim());
+        if (apiDefinition) {
+          finalDefinition = apiDefinition;
+        } else {
+          setIsLoading(false);
+          Alert.alert(
+            "Something went wrong", 
+            "Could not find definition for this word. Please enter a definition manually.",
+            [{ text: "OK" }]
+          );
+          return;
+        }
+      }
+
+      // If still no definition, require manual input
+      if (!finalDefinition) {
+        setIsLoading(false);
+        Alert.alert("Error", "Please enter a definition");
+        return;
+      }
+
       const response = await fetch(`${API_BASE_URL}/words`, {
         method: 'POST',
         headers: {
@@ -28,7 +74,7 @@ export default function AddWord() {
         },
         body: JSON.stringify({
           word: word.trim().toLowerCase(),
-          definition: definition.trim()
+          definition: finalDefinition
         }),
       });
 
@@ -44,6 +90,8 @@ export default function AddWord() {
       
     } catch (error) {
       Alert.alert("Error", "Failed to connect to server. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,9 +112,19 @@ export default function AddWord() {
           autoCapitalize="none"
         />
         
+        <View style={styles.toggleContainer}>
+          <Text style={styles.toggleLabel}>Auto-fetch definition</Text>
+          <Switch
+            value={autoFetchDefinition}
+            onValueChange={setAutoFetchDefinition}
+            trackColor={{ false: "#767577", true: "#007AFF" }}
+            thumbColor={autoFetchDefinition ? "#ffffff" : "#f4f3f4"}
+          />
+        </View>
+        
         <TextInput
           style={[styles.input, styles.definitionInput]}
-          placeholder="Enter definition"
+          placeholder={autoFetchDefinition ? "Enter definition (optional)" : "Enter definition"}
           value={definition}
           onChangeText={setDefinition}
           multiline
@@ -74,8 +132,14 @@ export default function AddWord() {
           textAlignVertical="top"
         />
         
-        <TouchableOpacity style={styles.button} onPress={handleSaveWord}>
-          <Text style={styles.buttonText}>Save Word</Text>
+        <TouchableOpacity 
+          style={[styles.button, isLoading && styles.buttonDisabled]} 
+          onPress={handleSaveWord}
+          disabled={isLoading}
+        >
+          <Text style={styles.buttonText}>
+            {isLoading ? "Adding Word..." : "Save Word"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -152,6 +216,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     textAlign: "center",
+  },
+  toggleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 20,
+    paddingHorizontal: 5,
+  },
+  toggleLabel: {
+    fontSize: 16,
+    color: "#333",
+    fontWeight: "500",
+  },
+  buttonDisabled: {
+    backgroundColor: "#ccc",
+    opacity: 0.6,
   },
 });
 

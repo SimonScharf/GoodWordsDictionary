@@ -7,6 +7,7 @@ export default function RootLayout() {
       <Stack.Screen name="word" options={{ headerShown: false }} />
       <Stack.Screen name="definition" options={{ headerShown: false }} />
       <Stack.Screen name="add-word" options={{ headerShown: false }} />
+      <Stack.Screen name="dictionary-list" options={{ headerShown: false }} />
     </Stack>
   );
 }

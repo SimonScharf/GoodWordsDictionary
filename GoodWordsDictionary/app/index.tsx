@@ -12,6 +12,10 @@ export default function Index() {
     router.push("/add-word");
   };
 
+  const handleShowDictionary = () => {
+    router.push("/dictionary-list");
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Good Words Dictionary</Text>
@@ -21,6 +25,10 @@ export default function Index() {
       
       <TouchableOpacity style={styles.secondaryButton} onPress={handleAddWord}>
         <Text style={styles.secondaryButtonText}>Add New Word</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.tertiaryButton} onPress={handleShowDictionary}>
+        <Text style={styles.tertiaryButtonText}>Show Entire Dictionary</Text>
       </TouchableOpacity>
     </View>
   );
@@ -74,6 +82,21 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     fontSize: 18,
     fontWeight: "600",
+    textAlign: "center",
+  },
+  tertiaryButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: "#666",
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    marginTop: 20,
+  },
+  tertiaryButtonText: {
+    color: "#666",
+    fontSize: 16,
+    fontWeight: "500",
     textAlign: "center",
   },
 });
