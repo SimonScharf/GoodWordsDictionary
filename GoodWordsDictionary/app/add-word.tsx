@@ -2,9 +2,8 @@ import { Text, View, TouchableOpacity, StyleSheet, TextInput, Alert } from "reac
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CUSTOM_WORDS_KEY = 'customWords';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 export default function AddWord() {
   const router = useRouter();
@@ -22,27 +21,29 @@ export default function AddWord() {
     }
 
     try {
-      // Get existing custom words from AsyncStorage
-      const existingCustomWords = await AsyncStorage.getItem(CUSTOM_WORDS_KEY);
-      const customWords = existingCustomWords ? JSON.parse(existingCustomWords) : [];
-      
-      // Add new word
-      const newWord = {
-        word: word.trim().toLowerCase(),
-        definition: definition.trim()
-      };
-      
-      customWords.push(newWord);
-      
-      // Save back to AsyncStorage
-      await AsyncStorage.setItem(CUSTOM_WORDS_KEY, JSON.stringify(customWords));
-      
-      Alert.alert("Success", "Word added successfully!", [
-        { text: "OK", onPress: () => router.push("/") }
-      ]);
+      const response = await fetch(`${API_BASE_URL}/words`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          word: word.trim().toLowerCase(),
+          definition: definition.trim()
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert("Success", `Word added successfully! Total words: ${data.totalWords}`, [
+          { text: "OK", onPress: () => router.push("/") }
+        ]);
+      } else {
+        Alert.alert("Error", data.error || "Failed to add word");
+      }
       
     } catch (error) {
-      Alert.alert("Error", "Failed to save word. Please try again.");
+      Alert.alert("Error", "Failed to connect to server. Please try again.");
     }
   };
 
@@ -154,16 +155,16 @@ const styles = StyleSheet.create({
   },
 });
 
-// Export function to get all words (original + custom)
+// Export function to get all words from backend API
 export const getAllWords = async () => {
-  const originalWords = require("../assets/dictionary.json").words;
-  
   try {
-    const existingCustomWords = await AsyncStorage.getItem(CUSTOM_WORDS_KEY);
-    const customWords = existingCustomWords ? JSON.parse(existingCustomWords) : [];
-    return [...originalWords, ...customWords];
+    const response = await fetch(`${API_BASE_URL}/words`);
+    const data = await response.json();
+    return data.words;
   } catch (error) {
-    console.error("Error loading custom words:", error);
+    console.error("Error loading words from API:", error);
+    // Fallback to local dictionary
+    const originalWords = require("../assets/dictionary.json").words;
     return originalWords;
   }
 };
