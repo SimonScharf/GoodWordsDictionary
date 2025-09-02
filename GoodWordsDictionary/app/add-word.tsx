@@ -1,7 +1,9 @@
-import { Text, View, TouchableOpacity, StyleSheet, TextInput, Alert, Switch } from "react-native";
+import React, { useState } from "react";
+import { View, TextInput, StyleSheet, Alert, Switch, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { Text, Button } from "react-native-elements";
+import { LinearGradient } from "expo-linear-gradient";
 
 const API_BASE_URL = 'http://localhost:3001/api';
 const DICTIONARY_API_KEY = 'fe32eda5-af52-4576-94a4-f24ea5e76075';
@@ -96,60 +98,68 @@ export default function AddWord() {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#667eea', '#764ba2']}
+      style={styles.container}
+    >
       <TouchableOpacity style={styles.homeButton} onPress={handleGoHome}>
-        <Ionicons name="home" size={24} color="#007AFF" />
+        <Ionicons name="home" size={24} color="#ffffff" />
       </TouchableOpacity>
       
       <View style={styles.content}>
-        <Text style={styles.title}>Add New Word</Text>
-        
-        <TextInput
-          style={styles.input}
-          placeholder="Enter word"
-          value={word}
-          onChangeText={setWord}
-          autoCapitalize="none"
-        />
-        
-        <View style={styles.toggleContainer}>
-          <Text style={styles.toggleLabel}>Auto-fetch definition</Text>
-          <Switch
-            value={autoFetchDefinition}
-            onValueChange={setAutoFetchDefinition}
-            trackColor={{ false: "#767577", true: "#007AFF" }}
-            thumbColor={autoFetchDefinition ? "#ffffff" : "#f4f3f4"}
-          />
+        <View style={styles.headerContainer}>
+          <Ionicons name="add-circle" size={60} color="#ffffff" style={styles.addIcon} />
+          <Text style={styles.title}>Add New Word</Text>
         </View>
         
-        <TextInput
-          style={[styles.input, styles.definitionInput]}
-          placeholder={autoFetchDefinition ? "Enter definition (optional)" : "Enter definition"}
-          value={definition}
-          onChangeText={setDefinition}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-        />
-        
-        <TouchableOpacity 
-          style={[styles.button, isLoading && styles.buttonDisabled]} 
-          onPress={handleSaveWord}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>
-            {isLoading ? "Adding Word..." : "Save Word"}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter word"
+            placeholderTextColor="#999"
+            value={word}
+            onChangeText={setWord}
+            autoCapitalize="none"
+          />
+          
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleLabel}>Auto-fetch definition</Text>
+            <Switch
+              value={autoFetchDefinition}
+              onValueChange={setAutoFetchDefinition}
+              trackColor={{ false: "#767577", true: "#4ECDC4" }}
+              thumbColor={autoFetchDefinition ? "#ffffff" : "#f4f3f4"}
+            />
+          </View>
+          
+          <TextInput
+            style={[styles.input, styles.definitionInput]}
+            placeholder={autoFetchDefinition ? "Enter definition (optional)" : "Enter definition"}
+            placeholderTextColor="#999"
+            value={definition}
+            onChangeText={setDefinition}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+          
+          <Button
+            title={isLoading ? "Adding Word..." : "Save Word"}
+            onPress={handleSaveWord}
+            disabled={isLoading}
+            buttonStyle={[styles.button, isLoading && styles.buttonDisabled]}
+            titleStyle={styles.buttonText}
+            icon={<Ionicons name="save" size={20} color="#ffffff" style={{ marginRight: 8 }} />}
+          />
+        </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
     padding: 20,
   },
   homeButton: {
@@ -157,7 +167,7 @@ const styles = StyleSheet.create({
     top: 60,
     left: 20,
     zIndex: 1,
-    backgroundColor: "white",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     padding: 10,
     borderRadius: 20,
     shadowColor: "#000",
@@ -175,45 +185,77 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
+  headerContainer: {
+    alignItems: "center",
     marginBottom: 40,
-    color: "#333",
+  },
+  addIcon: {
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#ffffff",
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  formContainer: {
+    width: "100%",
+    maxWidth: 350,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 20,
+    padding: 25,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 15,
   },
   input: {
     width: "100%",
     backgroundColor: "white",
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 10,
+    borderColor: "#e0e0e0",
+    borderRadius: 12,
     padding: 15,
     fontSize: 16,
     marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   definitionInput: {
     height: 100,
     textAlignVertical: "top",
   },
   button: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 30,
+    backgroundColor: "#4ECDC4",
+    paddingHorizontal: 25,
     paddingVertical: 15,
-    borderRadius: 25,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderRadius: 12,
     marginTop: 20,
   },
   buttonText: {
     color: "white",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
   },
@@ -224,6 +266,9 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 20,
     paddingHorizontal: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 10,
+    padding: 15,
   },
   toggleLabel: {
     fontSize: 16,

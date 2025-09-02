@@ -1,7 +1,9 @@
-import { Text, View, TouchableOpacity, StyleSheet, FlatList, TextInput } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { Text } from "react-native-elements";
 
 interface WordData {
   word: string;
@@ -82,10 +84,14 @@ export default function DictionaryList() {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#667eea', '#764ba2']}
+      style={styles.container}
+    >
       <TouchableOpacity style={styles.homeButton} onPress={handleGoHome}>
-        <Ionicons name="home" size={24} color="#007AFF" />
+        <Ionicons name="home" size={24} color="#ffffff" />
       </TouchableOpacity>
+      
       
       <View style={styles.content}>
         <Text style={styles.title}>Complete Dictionary</Text>
@@ -118,14 +124,13 @@ export default function DictionaryList() {
           showsVerticalScrollIndicator={false}
         />
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
     padding: 20,
   },
   homeButton: {
@@ -133,7 +138,7 @@ const styles = StyleSheet.create({
     top: 60,
     left: 20,
     zIndex: 1,
-    backgroundColor: "white",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     padding: 10,
     borderRadius: 20,
     shadowColor: "#000",
@@ -153,12 +158,15 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 10,
-    color: "#333",
+    color: "#ffffff",
     textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   subtitle: {
     fontSize: 16,
-    color: "#666",
+    color: "rgba(255, 255, 255, 0.9)",
     textAlign: "center",
     marginBottom: 30,
   },

@@ -1,7 +1,9 @@
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { Text, Button } from "react-native-elements";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface WordData {
   word: string;
@@ -50,40 +52,57 @@ export default function Word() {
 
   if (!currentWord) {
     return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
+      <LinearGradient
+        colors={['#667eea', '#764ba2']}
+        style={styles.container}
+      >
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#667eea', '#764ba2']}
+      style={styles.container}
+    >
       <TouchableOpacity style={styles.homeButton} onPress={handleGoHome}>
-        <Ionicons name="home" size={24} color="#007AFF" />
+        <Ionicons name="home" size={24} color="#ffffff" />
       </TouchableOpacity>
       
       <View style={styles.content}>
-        <Text style={styles.title}>Your Word of the Day</Text>
-        <Text style={styles.word}>{currentWord.word}</Text>
+        <View style={styles.headerContainer}>
+          <Ionicons name="calendar" size={70} color="#ffffff" style={styles.calendarIcon} />
+          <Text style={styles.title}>Your Word of the Day</Text>
+        </View>
         
-        {wordStats && (
-          <Text style={styles.progressText}>
-            Word {wordStats.shownToday} of {wordStats.totalWords} • {wordStats.currentDate}
-          </Text>
-        )}
-        
-        <TouchableOpacity style={styles.button} onPress={handleSeeDefinition}>
-          <Text style={styles.buttonText}>See Definition</Text>
-        </TouchableOpacity>
+        <View style={styles.wordCard}>
+          <Text style={styles.word}>{currentWord.word}</Text>
+          
+          {wordStats && (
+            <Text style={styles.progressText}>
+              Word {wordStats.shownToday} of {wordStats.totalWords} • {wordStats.currentDate}
+            </Text>
+          )}
+          
+          <Button
+            title="See Definition"
+            onPress={handleSeeDefinition}
+            buttonStyle={styles.button}
+            titleStyle={styles.buttonText}
+            icon={<Ionicons name="eye" size={20} color="#ffffff" style={{ marginRight: 8 }} />}
+          />
+        </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
     padding: 20,
   },
   homeButton: {
@@ -91,7 +110,7 @@ const styles = StyleSheet.create({
     top: 60,
     left: 20,
     zIndex: 1,
-    backgroundColor: "white",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     padding: 10,
     borderRadius: 20,
     shadowColor: "#000",
@@ -108,44 +127,80 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
+  headerContainer: {
+    alignItems: "center",
     marginBottom: 40,
-    color: "#333",
-    textAlign: "center",
   },
-  word: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#007AFF",
+  calendarIcon: {
     marginBottom: 20,
-    textAlign: "center",
-  },
-  progressText: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 30,
-    textAlign: "center",
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#ffffff",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
+  },
+  wordCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 25,
+    padding: 40,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 20,
+    minWidth: 300,
+  },
+  word: {
+    fontSize: 42,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 15,
+    textAlign: "center",
+    textTransform: "capitalize",
+  },
+  progressText: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 30,
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  button: {
+    backgroundColor: "#FF6B6B",
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    borderRadius: 12,
   },
   buttonText: {
     color: "white",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 18,
+    color: "#ffffff",
+    fontWeight: "500",
   },
 });
