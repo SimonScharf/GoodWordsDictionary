@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, StyleSheet, FlatList } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, FlatList, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +13,8 @@ const API_BASE_URL = 'http://localhost:3001/api';
 export default function DictionaryList() {
   const router = useRouter();
   const [words, setWords] = useState<WordData[]>([]);
+  const [filteredWords, setFilteredWords] = useState<WordData[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   const handleGoHome = () => {
@@ -26,17 +28,36 @@ export default function DictionaryList() {
     });
   };
 
+  // Filter words based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredWords(words);
+    } else {
+      const filtered = words.filter(word =>
+        word.word.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredWords(filtered);
+    }
+  }, [words, searchQuery]);
+
   useEffect(() => {
     const loadAllWords = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/words`);
         const data = await response.json();
-        setWords(data.words);
+        // Sort words alphabetically
+        const sortedWords = data.words.sort((a: WordData, b: WordData) => 
+          a.word.localeCompare(b.word)
+        );
+        setWords(sortedWords);
       } catch (error) {
         console.error("Error loading words:", error);
         // Fallback to local dictionary
         const originalWords = require("../assets/dictionary.json").words;
-        setWords(originalWords);
+        const sortedWords = originalWords.sort((a: WordData, b: WordData) => 
+          a.word.localeCompare(b.word)
+        );
+        setWords(sortedWords);
       } finally {
         setIsLoading(false);
       }
@@ -68,10 +89,29 @@ export default function DictionaryList() {
       
       <View style={styles.content}>
         <Text style={styles.title}>Complete Dictionary</Text>
-        <Text style={styles.subtitle}>{words.length} words</Text>
+        <Text style={styles.subtitle}>
+          {filteredWords.length} of {words.length} words
+        </Text>
+        
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search words..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={20} color="#666" />
+            </TouchableOpacity>
+          )}
+        </View>
         
         <FlatList
-          data={words}
+          data={filteredWords}
           renderItem={renderWordItem}
           keyExtractor={(item) => item.word}
           style={styles.list}
@@ -157,5 +197,33 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     color: "#666",
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+  },
+  clearButton: {
+    padding: 5,
   },
 });
